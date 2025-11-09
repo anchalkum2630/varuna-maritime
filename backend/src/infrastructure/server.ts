@@ -1,12 +1,15 @@
 import express from "express";
-// import cors from "cors";
+import cors from "cors";
 import routesController from "../adapters/inbound/http/routesController";
 import complianceController from "../adapters/inbound/http/complianceController";
 import bankingController from "../adapters/inbound/http/bankingController";
 import poolsController from "../adapters/inbound/http/poolsController";
 
 const app = express();
-// app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173" // or your frontend URL
+}));
+
 app.use(express.json());
 
 app.get("/", (_, res) => res.send("FuelEU backend running"));
