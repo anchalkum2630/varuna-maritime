@@ -6,9 +6,18 @@ import bankingController from "../adapters/inbound/http/bankingController";
 import poolsController from "../adapters/inbound/http/poolsController";
 
 const app = express();
+
 app.use(cors({
-  origin: "http://localhost:5173" // or your frontend URL
+  origin: (origin, callback) => {
+    if (!origin || origin.startsWith("http://localhost")) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
 }));
+
 
 app.use(express.json());
 

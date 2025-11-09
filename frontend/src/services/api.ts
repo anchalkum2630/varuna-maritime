@@ -7,10 +7,12 @@ const api = axios.create({ baseURL: BASE, timeout: 5000 });
 // Routes
 export const fetchRoutes = async (): Promise<Route[]> => {
   const r = await api.get("/routes");
+  console.log(r);
   return r.data;
 };
 export const postSetBaseline = async (routeId: string) => {
   const r = await api.post(`/routes/${routeId}/baseline`);
+  
   return r.data;
 };
 export const fetchComparison = async (): Promise<ComparisonResponse> => {
