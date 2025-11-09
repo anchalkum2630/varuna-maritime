@@ -6,7 +6,7 @@ export function allocatePool(members: Member[]): { shipId: string; cb_before: nu
 
   const out = members.map(m => ({ ...m, cb_after: m.cb }));
   const surplus = out.filter(m => m.cb_after > 0).sort((a, b) => b.cb_after - a.cb_after);
-  const deficit = out.filter(m => m.cb_after < 0).sort((a, b) => a.cb_after - b.cb_after); // most negative first
+  const deficit = out.filter(m => m.cb_after < 0).sort((a, b) => a.cb_after - b.cb_after);
 
   for (const d of deficit) {
     let need = -d.cb_after;

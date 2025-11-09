@@ -1,35 +1,38 @@
 import { Router } from "express";
-import { RouteRepository } from "../../outbound/mock/routeRepository";
+import { RouteRepository } from "../../outbound/postgres/routeRepo";
 import { percentDiff, isCompliant } from "../../../core/application/compare";
 
 const router = Router();
 const repo = new RouteRepository();
 
-router.get("/", (req, res) => {
-  const data = repo.getAll();
+router.get("/", async (_, res) => {
+  const data = await repo.getAll();
   res.json(data);
 });
 
-router.post("/:routeId/baseline", (req, res) => {
+router.post("/:routeId/baseline", async (req, res) => {
   const { routeId } = req.params;
-  const updated = repo.setBaseline(routeId);
+  const updated = await repo.setBaseline(routeId);
   if (!updated) return res.status(404).json({ error: "route not found" });
   res.json({ message: "baseline set", baseline: updated });
 });
 
-router.get("/comparison", (req, res) => {
-  const baseline = repo.getBaseline();
+router.get("/comparison", async (_, res) => {
+  const baseline = await repo.getBaseline();
   if (!baseline) return res.status(400).json({ error: "no baseline set" });
-  const comparisons = repo.getAll().filter(r => r.routeId !== baseline.routeId).map(r => ({
-    routeId: r.routeId,
-    vesselType: r.vesselType,
-    fuelType: r.fuelType,
-    year: r.year,
-    ghgIntensity: r.ghgIntensity,
-    percentDiff: Number(percentDiff(baseline.ghgIntensity, r.ghgIntensity).toFixed(4)),
-    compliant: isCompliant(r.ghgIntensity)
-  }));
-  res.json({ baseline: { routeId: baseline.routeId, ghgIntensity: baseline.ghgIntensity }, comparisons });
+
+  const comparisons = (await repo.getAll())
+    .filter(r => r.route_id !== baseline.route_id)
+    .map(r => ({
+      routeId: r.route_id,
+      vesselType: r.vessel_type,
+      fuelType: r.fuel_type,
+      year: r.year,
+      ghgIntensity: r.ghg_intensity,
+      percentDiff: Number(percentDiff(baseline.ghg_intensity, r.ghg_intensity).toFixed(4)),
+      compliant: isCompliant(r.ghg_intensity)
+    }));
+  res.json({ baseline: { routeId: baseline.route_id, ghgIntensity: baseline.ghg_intensity }, comparisons });
 });
 
 export default router;

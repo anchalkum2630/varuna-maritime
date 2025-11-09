@@ -10,18 +10,30 @@ export type Route = {
   isBaseline?: boolean;
 };
 
-export type ComparisonResponse = {
-  baseline: { routeId: string; ghgIntensity: number };
-  comparisons: {
-    routeId: string;
-    ghgIntensity: number;
-    percentDiff: number;
-    compliant: boolean;
-  }[];
-  target?: number;
+export type Comparison = {
+  routeId: string;
+  vesselType: string;
+  fuelType: string;
+  year: number;
+  ghgIntensity: number;
+  percentDiff: number;
+  compliant: boolean;
 };
 
-export type AdjustedCBItem = {
+export type CBEntry = {
+  shipId: string;
+  year: number;
+  cb: number;
+};
+
+export type BankRecord = {
+  id: number;
+  shipId: string;
+  year: number;
+  amount: number;
+};
+
+export type PoolMember = {
   shipId: string;
   cb: number;
 };

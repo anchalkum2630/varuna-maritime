@@ -6,10 +6,7 @@ import bankingController from "../adapters/inbound/http/bankingController";
 import poolsController from "../adapters/inbound/http/poolsController";
 
 const app = express();
-app.use(cors({
-  origin: "http://localhost:5173" // or your frontend URL
-}));
-
+app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 
 app.get("/", (_, res) => res.send("FuelEU backend running"));
@@ -20,4 +17,4 @@ app.use("/banking", bankingController);
 app.use("/pools", poolsController);
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
-app.listen(PORT, () => console.log(`✅ Server listening at http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));

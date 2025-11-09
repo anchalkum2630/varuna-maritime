@@ -1,26 +1,29 @@
 import { Router } from "express";
-import { RouteRepository } from "../../outbound/mock/routeRepository";
-import { computeCB } from "../../../core/application/computeCB";
+import { ComplianceRepository } from "../../outbound/postgres/complianceRepo";
 
 const router = Router();
-const repo = new RouteRepository();
+const repo = new ComplianceRepository();
 
 // GET /compliance/cb?shipId=R002&year=2024
-router.get("/cb", (req, res) => {
+router.get("/cb", async (req, res) => {
   const shipId = String(req.query.shipId || "");
-  const year = Number(req.query.year || 0) || undefined;
-  if (!shipId) return res.status(400).json({ error: "shipId required" });
-  const route = repo.find(shipId, year);
-  if (!route) return res.status(404).json({ error: "route not found" });
-  const cb = computeCB(route.ghgIntensity, route.fuelConsumption);
-  res.json({ shipId: route.routeId, year: route.year, cb });
+  const year = Number(req.query.year || 0);
+  if (!shipId || !year) return res.status(400).json({ error: "shipId and year required" });
+
+  const result = await repo.getCB(shipId, year);
+  if (!result) return res.status(404).json({ error: "ship not found" });
+
+  res.json(result);
 });
 
-// GET /compliance/adjusted-cb?year=2024
-router.get("/adjusted-cb", (req, res) => {
+// GET /compliance/adjusted-cb?shipId=R002&year=2024
+router.get("/adjusted-cb", async (req, res) => {
+  const shipId = String(req.query.shipId || "");
   const year = Number(req.query.year || 0);
-  const list = repo.getAll().filter(r => r.year === year).map(r => ({ shipId: r.routeId, cb: computeCB(r.ghgIntensity, r.fuelConsumption) }));
-  res.json({ year, adjusted: list });
+  if (!shipId || !year) return res.status(400).json({ error: "shipId and year required" });
+
+  const adjusted = await repo.getAdjustedCB(shipId, year);
+  res.json({ shipId, year, adjusted });
 });
 
 export default router;

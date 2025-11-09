@@ -1,43 +1,56 @@
 import axios from "axios";
-import type { Route, ComparisonResponse, AdjustedCBItem } from "../types";
+import type { Route, CBEntry, PoolMember } from "../types";
 
-const BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000";
-const api = axios.create({ baseURL: BASE, timeout: 5000 });
+const BASE_URL = "http://localhost:4000";
 
-// Routes
-export const fetchRoutes = async (): Promise<Route[]> => {
-  const r = await api.get("/routes");
-  return r.data;
-};
-export const postSetBaseline = async (routeId: string) => {
-  const r = await api.post(`/routes/${routeId}/baseline`);
-  return r.data;
-};
-export const fetchComparison = async (): Promise<ComparisonResponse> => {
-  const r = await api.get("/routes/comparison");
-  return r.data;
+export const api = axios.create({
+  baseURL: BASE_URL,
+});
+
+// ROUTES
+export const getRoutes = async (): Promise<Route[]> => {
+  const res = await api.get("/routes");
+  return res.data;
 };
 
-// Compliance / Banking / Pools
-export const fetchCB = async (shipId: string, year: number) => {
-  const r = await api.get(`/compliance/cb?shipId=${encodeURIComponent(shipId)}&year=${year}`);
-  return r.data;
-};
-export const fetchAdjustedCB = async (year: number): Promise<{ year: number; adjusted: AdjustedCBItem[] }> => {
-  const r = await api.get(`/compliance/adjusted-cb?year=${year}`);
-  return r.data;
+export const setBaseline = async (routeId: string) => {
+  const res = await api.post(`/routes/${routeId}/baseline`);
+  return res.data;
 };
 
-export const bankSurplus = async (payload: { shipId: string; year: number }) => {
-  const r = await api.post("/banking/bank", payload);
-  return r.data;
-};
-export const applyBank = async (payload: { shipId: string; year: number; amount: number }) => {
-  const r = await api.post("/banking/apply", payload);
-  return r.data;
+export const getComparison = async () => {
+  const res = await api.get("/routes/comparison");
+  return res.data;
 };
 
-export const createPool = async (payload: { year: number; members: { shipId: string; cb: number }[] }) => {
-  const r = await api.post("/pools", payload);
-  return r.data;
+// COMPLIANCE / BANKING
+export const getCB = async (shipId: string, year: number) => {
+  const res = await api.get("/compliance/cb", { params: { shipId, year } });
+  return res.data;
+};
+
+export const getAdjustedCB = async (year: number) => {
+  const res = await api.get("/compliance/adjusted-cb", { params: { year } });
+  return res.data;
+};
+
+export const getBankRecords = async (shipId: string, year: number) => {
+  const res = await api.get("/banking/records", { params: { shipId, year } });
+  return res.data;
+};
+
+export const bankCB = async (shipId: string, year: number) => {
+  const res = await api.post("/banking/bank", { shipId, year });
+  return res.data;
+};
+
+export const applyBank = async (shipId: string, year: number, amount: number) => {
+  const res = await api.post("/banking/apply", { shipId, year, amount });
+  return res.data;
+};
+
+// POOLS
+export const createPool = async (year: number, members: PoolMember[]) => {
+  const res = await api.post("/pools", { year, members });
+  return res.data;
 };

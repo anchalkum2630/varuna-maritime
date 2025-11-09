@@ -1,90 +1,84 @@
-import { useEffect, useMemo, useState } from "react";
-import { fetchRoutes, postSetBaseline } from "../services/api";
-import type { Route } from "../types";
+import { useEffect, useState } from "react";
+import { getRoutes, setBaseline } from "../services/api";
 import Table from "../components/Table";
 
+interface RouteData {
+  id: number;
+  route_id: string;
+  vessel_type: string;
+  fuel_type: string;
+  year: number;
+  ghg_intensity: string;
+  fuel_consumption: string;
+  distance: string;
+  total_emissions: string;
+  is_baseline: boolean;
+}
+
 export default function RoutesPage() {
-  const [routes, setRoutes] = useState<Route[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ vesselType: "", fuelType: "", year: "" });
+  const [routes, setRoutes] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    fetchRoutes().then(data => setRoutes(data)).finally(() => setLoading(false));
+    fetchRoutes();
   }, []);
 
-  const vesselOptions = useMemo(() => Array.from(new Set(routes.map(r => r.vesselType))), [routes]);
-  const fuelOptions = useMemo(() => Array.from(new Set(routes.map(r => r.fuelType))), [routes]);
-  const yearOptions = useMemo(() => Array.from(new Set(routes.map(r => String(r.year)))), [routes]);
+  const fetchRoutes = async () => {
+    setLoading(true);
+    try {
+      const data = await getRoutes();
+      setRoutes(data);
+    } catch (err) {
+      console.error("Failed to fetch routes:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const filtered = routes.filter(r =>
-    (filters.vesselType ? r.vesselType === filters.vesselType : true) &&
-    (filters.fuelType ? r.fuelType === filters.fuelType : true) &&
-    (filters.year ? String(r.year) === filters.year : true)
-  );
-
-  const onSetBaseline = async (routeId: string) => {
-    await postSetBaseline(routeId);
-    const updated = await fetchRoutes();
-    setRoutes(updated);
-    alert("Baseline set.");
+  const handleBaseline = async (routeId: string) => {
+    try {
+      await setBaseline(routeId);
+      fetchRoutes();
+    } catch (err) {
+      console.error("Failed to set baseline:", err);
+    }
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-4">
-      <h2 className="text-2xl font-semibold">Routes</h2>
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">Routes</h2>
 
-      <div className="flex gap-2">
-        <select className="p-2 border rounded" value={filters.vesselType} onChange={e => setFilters(f => ({ ...f, vesselType: e.target.value }))}>
-          <option value="">All Vessels</option>
-          {vesselOptions.map(v => <option key={v} value={v}>{v}</option>)}
-        </select>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <>
+          <Table
+            headers={[
+              "route_id",
+              "vessel_type",
+              "fuel_type",
+              "year",
+              "ghg_intensity",
+              "fuel_consumption",
+              "distance",
+              "total_emissions",
+              "is_baseline",
+            ]}
+            data={routes}
+          />
 
-        <select className="p-2 border rounded" value={filters.fuelType} onChange={e => setFilters(f => ({ ...f, fuelType: e.target.value }))}>
-          <option value="">All Fuels</option>
-          {fuelOptions.map(v => <option key={v} value={v}>{v}</option>)}
-        </select>
-
-        <select className="p-2 border rounded" value={filters.year} onChange={e => setFilters(f => ({ ...f, year: e.target.value }))}>
-          <option value="">All Years</option>
-          {yearOptions.map(v => <option key={v} value={v}>{v}</option>)}
-        </select>
-      </div>
-
-      {loading ? <div>Loading...</div> : (
-        <Table>
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-2">routeId</th>
-              <th className="p-2">vesselType</th>
-              <th className="p-2">fuelType</th>
-              <th className="p-2">year</th>
-              <th className="p-2">ghgIntensity</th>
-              <th className="p-2">fuelConsumption (t)</th>
-              <th className="p-2">distance (km)</th>
-              <th className="p-2">totalEmissions (t)</th>
-              <th className="p-2">baseline</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(r => (
-              <tr key={r.routeId} className="border-t">
-                <td className="p-2">{r.routeId}</td>
-                <td className="p-2">{r.vesselType}</td>
-                <td className="p-2">{r.fuelType}</td>
-                <td className="p-2">{r.year}</td>
-                <td className="p-2">{r.ghgIntensity}</td>
-                <td className="p-2">{r.fuelConsumption}</td>
-                <td className="p-2">{r.distance}</td>
-                <td className="p-2">{r.totalEmissions}</td>
-                <td className="p-2">
-                  {r.isBaseline ? <span className="text-green-600 font-semibold">Baseline</span> :
-                    <button onClick={() => onSetBaseline(r.routeId)} className="px-2 py-1 bg-blue-600 text-white rounded">Set Baseline</button>}
-                </td>
-              </tr>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {routes.map((r) => (
+              <button
+                key={r.route_id}
+                onClick={() => handleBaseline(r.route_id)}
+                className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+              >
+                Set {r.route_id} as Baseline
+              </button>
             ))}
-          </tbody>
-        </Table>
+          </div>
+        </>
       )}
     </div>
   );
