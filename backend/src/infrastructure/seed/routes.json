@@ -41,7 +41,7 @@
     "fuelConsumption": 4900,
     "distance": 11800,
     "totalEmissions": 4300,
-    "isBaseline": false
+    "isBaseline": true
   },
   {
     "routeId": "R005",
@@ -52,6 +52,6 @@
     "fuelConsumption": 4950,
     "distance": 11900,
     "totalEmissions": 4400,
-    "isBaseline": true
+    "isBaseline": false
   }
 ]

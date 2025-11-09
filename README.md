@@ -222,3 +222,7 @@ API clients and repositories implement ports to maintain clean architecture.
 Responsive UI built using TailwindCSS.
 
 PostgreSQL DB schema ensures data integrity and supports Fuel EU Maritime compliance calculations.
+
+### Routes Tab
+![Routes Tab](screenshot)
+
